@@ -1,30 +1,38 @@
 """
-SalesIQ BI Dashboard — Flask Backend v2
-========================================
-- Serves frontend (index.html) at /   ← fixes "only JSON shown" issue
-- REST API at /api/...
-- Neon PostgreSQL via SQLAlchemy
-- Vercel-compatible
+SalesIQ BI Dashboard — Flask App
+==================================
+Works in 3 environments:
+  1. Local:  python backend/app.py  → http://localhost:5000
+  2. Vercel: imported by api/index.py (entry point)
+  3. Waitress (Windows prod): waitress-serve --call app:create_app
 
-Run locally:  python app.py
+Frontend served at /
+API served at /api/...
+Database: Neon PostgreSQL (optional — falls back to in-memory)
 """
 
 import os
-from flask import Flask, jsonify, send_from_directory
+import sys
+from flask import Flask, jsonify, send_from_directory, Response
 from flask_cors import CORS
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# Paths
+# ── Resolve paths ──────────────────────────────────────────────────────────────
+# backend/app.py can be called from different working dirs
 BACKEND_DIR  = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_DIR = os.path.join(BACKEND_DIR, "..")   # bi-dashboard/ root
+PROJECT_ROOT = os.path.dirname(BACKEND_DIR)   # the bi-dashboard/ root
+
+# Add backend to sys.path so routes/utils imports always work
+if BACKEND_DIR not in sys.path:
+    sys.path.insert(0, BACKEND_DIR)
 
 
 def create_app():
     app = Flask(
         __name__,
-        static_folder=FRONTEND_DIR,
+        static_folder=PROJECT_ROOT,   # serve index.html and sample-data/ from here
         static_url_path=""
     )
     CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -37,7 +45,7 @@ def create_app():
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     os.makedirs(app.config["EXPORT_FOLDER"], exist_ok=True)
 
-    # ── API Blueprints ─────────────────────────────────────────────────────────
+    # ── Register API blueprints ────────────────────────────────────────────────
     from routes.upload    import upload_bp
     from routes.analytics import analytics_bp
     from routes.export    import export_bp
@@ -48,28 +56,27 @@ def create_app():
     app.register_blueprint(export_bp,    url_prefix="/api/export")
     app.register_blueprint(data_bp,      url_prefix="/api/data")
 
-    # ── Frontend — serve index.html at / ──────────────────────────────────────
+    # ── Frontend ───────────────────────────────────────────────────────────────
     @app.route("/")
     def index():
-        """Serve the dashboard frontend. Fixes the 'only JSON at /' issue."""
-        return send_from_directory(FRONTEND_DIR, "index.html")
+        """Serve the dashboard. This is what opens in the browser."""
+        return send_from_directory(PROJECT_ROOT, "index.html")
 
     @app.route("/sample-data/<path:filename>")
-    def sample_data(filename):
-        """Serve sample data files for download."""
-        sample_dir = os.path.join(FRONTEND_DIR, "sample-data")
-        return send_from_directory(sample_dir, filename)
+    def serve_sample(filename):
+        """Serve sample CSV/XLSX/JSON download files."""
+        return send_from_directory(os.path.join(PROJECT_ROOT, "sample-data"), filename)
 
-    # ── API Info ───────────────────────────────────────────────────────────────
+    # ── API info ───────────────────────────────────────────────────────────────
     @app.route("/api")
     @app.route("/api/")
     def api_root():
-        db_url = os.getenv("DATABASE_URL", "")
-        db_status = "not configured"
+        db_url    = os.getenv("DATABASE_URL", "")
+        db_status = "not configured — add DATABASE_URL to Vercel env vars"
         if db_url:
             try:
                 from db.database import test_connection
-                db_status = "connected" if test_connection() else "connection failed"
+                db_status = "connected ✅" if test_connection() else "connection failed ❌"
             except Exception as e:
                 db_status = f"error: {e}"
 
@@ -78,14 +85,14 @@ def create_app():
             "version":  "2.0.0",
             "status":   "running",
             "database": db_status,
-            "frontend": "Open http://localhost:5000 in your browser",
-            "docs":     "http://localhost:5000/api/docs",
+            "frontend": "Open the root URL in your browser (not /api)",
+            "docs":     "/api/docs",
         })
 
     @app.route("/api/health")
     def health():
         db_url = os.getenv("DATABASE_URL", "")
-        db_ok, db_msg = False, "DATABASE_URL not set in .env"
+        db_ok, db_msg = False, "DATABASE_URL not set"
         if db_url:
             try:
                 from db.database import test_connection
@@ -97,45 +104,54 @@ def create_app():
 
     @app.route("/api/db/init", methods=["POST"])
     def db_init():
-        """Create DB tables. Call once after deploy: POST /api/db/init"""
+        """Create Neon DB tables. Call once: POST /api/db/init"""
         try:
             from db.database import init_db
             init_db()
-            return jsonify({"success": True, "message": "Tables created"})
+            return jsonify({"success": True, "message": "Database tables created successfully"})
         except Exception as e:
             return jsonify({"success": False, "error": str(e)}), 500
 
     @app.route("/api/docs")
     def docs():
         return jsonify({
-            "title": "SalesIQ API v2 — Neon DB Edition",
-            "open_browser": "http://localhost:5000",
+            "title":    "SalesIQ BI Dashboard API v2",
+            "database": "Neon PostgreSQL",
+            "tip":      "Open the root URL (/) in a browser to see the dashboard",
             "endpoints": [
-                "GET  /              → Dashboard UI (your browser)",
-                "GET  /api/health    → Health + DB check",
-                "POST /api/db/init   → Create DB tables (once)",
-                "POST /api/upload/file         → Upload data file",
-                "GET  /api/upload/sessions     → All sessions",
-                "GET  /api/analytics/summary   → KPIs",
-                "GET  /api/analytics/revenue   → Revenue chart data",
-                "GET  /api/analytics/categories",
-                "GET  /api/analytics/regions",
-                "GET  /api/analytics/reps",
-                "GET  /api/analytics/products",
-                "GET  /api/analytics/dax       → DAX measures",
-                "GET  /api/data/records        → Paginated table",
-                "GET  /api/export/csv|xlsx|json|tsv|summary",
+                "GET  /                         → Dashboard UI",
+                "GET  /api/health               → Health + DB check",
+                "POST /api/db/init              → Create DB tables (run once)",
+                "POST /api/upload/file          → Upload CSV/XLSX/JSON/TSV",
+                "GET  /api/upload/sessions      → List sessions",
+                "DELETE /api/upload/session/<id>→ Delete session",
+                "GET  /api/analytics/summary    → KPI metrics",
+                "GET  /api/analytics/revenue    → Revenue over time",
+                "GET  /api/analytics/categories → By category",
+                "GET  /api/analytics/regions    → By region",
+                "GET  /api/analytics/reps       → By sales rep",
+                "GET  /api/analytics/products   → Top products",
+                "GET  /api/analytics/dax        → DAX measures",
+                "GET  /api/data/records         → Paginated records",
+                "GET  /api/export/csv           → Download CSV",
+                "GET  /api/export/xlsx          → Download Excel",
+                "GET  /api/export/json          → Download JSON",
+                "GET  /api/export/tsv           → Download TSV",
+                "GET  /api/export/summary       → KPI report CSV",
             ]
         })
 
-    # ── Error Handlers ─────────────────────────────────────────────────────────
+    # ── Error handlers ─────────────────────────────────────────────────────────
     @app.errorhandler(404)
     def not_found(e):
-        return jsonify({"error": "Not Found", "tip": "Open http://localhost:5000 for the dashboard"}), 404
+        return jsonify({
+            "error": "Not Found",
+            "tip":   "Open the root URL in your browser to see the dashboard",
+        }), 404
 
     @app.errorhandler(413)
     def too_large(e):
-        return jsonify({"error": "File too large. Max 50 MB."}), 413
+        return jsonify({"error": "File too large. Maximum is 50 MB."}), 413
 
     @app.errorhandler(500)
     def server_error(e):
@@ -144,18 +160,20 @@ def create_app():
     return app
 
 
+# Create the app instance (used by Vercel via api/index.py)
 app = create_app()
 
+# ── Local dev server ───────────────────────────────────────────────────────────
 if __name__ == "__main__":
     db_url = os.getenv("DATABASE_URL", "")
 
-    print("\n" + "="*55)
+    print("\n" + "=" * 55)
     print("  SalesIQ BI Dashboard v2")
-    print("  ► Open browser:  http://localhost:5000")
-    print("  ► API root:      http://localhost:5000/api")
-    print("  ► API docs:      http://localhost:5000/api/docs")
-    print(f"  ► Database:      {'✅ Neon PostgreSQL configured' if db_url else '⚠️  Add DATABASE_URL to .env'}")
-    print("="*55 + "\n")
+    print("  ► Dashboard:  http://localhost:5000       ← open this!")
+    print("  ► API:        http://localhost:5000/api")
+    print("  ► Docs:       http://localhost:5000/api/docs")
+    print("  ► DB:        ", "✅ Neon configured" if db_url else "⚠️  Set DATABASE_URL in .env")
+    print("=" * 55 + "\n")
 
     if db_url:
         try:
