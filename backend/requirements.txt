@@ -1,0 +1,12 @@
+flask==3.0.3
+flask-cors==4.0.1
+pandas==2.2.2
+numpy==1.26.4
+openpyxl==3.1.5
+xlrd==2.0.1
+werkzeug==3.0.3
+gunicorn==22.0.0        # Linux/Mac production server
+waitress==3.0.0         # Windows production server
+python-dotenv==1.0.1
+pytest==9.0.3
+pytest-cov==7.1.0

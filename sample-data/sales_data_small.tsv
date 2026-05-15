@@ -1,0 +1,21 @@
+Order ID	Date	Category	Product	Region	Sales Rep	Units	Unit Price	Revenue	Cost	Profit	Customer
+1014	2024-01-02	Food & Beverage	Premium Tea Set	East	Bob Smith	4	24.47	97.88	47.27	50.61	FitLife
+1098	2024-01-15	Clothing	Denim Jeans	South	Bob Smith	15	72.66	1089.9	489.71	600.19	SportZone
+1021	2024-01-17	Electronics	Laptop Pro	East	Alice Johnson	23	1317.03	30291.69	17682.37	12609.32	FitLife
+1039	2024-01-21	Clothing	Hoodie	East	Bob Smith	5	52.47	262.35	116.46	145.89	SmartHome Inc
+1012	2024-01-25	Food & Beverage	Protein Powder	North	Bob Smith	5	55.04	275.2	131.97	143.23	SoundWorld
+1115	2024-01-26	Home & Garden	Air Purifier	West	Carol White	1	201.31	201.31	106.63	94.68	SmartHome Inc
+1097	2024-01-27	Food & Beverage	Snack Box	South	Carol White	25	29.99	749.75	372.7	377.05	FitLife
+1043	2024-02-05	Clothing	Winter Jacket	East	Carol White	22	87.23	1919.06	848.75	1070.31	FitLife
+1089	2024-02-06	Clothing	Formal Suit	North	Bob Smith	5	312.24	1561.2	725.49	835.71	SportZone
+1032	2024-02-07	Home & Garden	Robot Vacuum	North	David Lee	22	456.54	10043.88	5200.48	4843.4	FashionHub
+1025	2024-02-08	Home & Garden	Robot Vacuum	West	Alice Johnson	14	435.75	6100.5	3160.4	2940.1	TechCorp
+1064	2024-02-11	Home & Garden	Air Purifier	West	Alice Johnson	25	209.01	5225.25	2695.82	2529.43	FitLife
+1072	2024-02-14	Home & Garden	Coffee Table	East	David Lee	9	245.55	2209.95	1119.93	1090.02	SmartHome Inc
+1117	2024-02-16	Food & Beverage	Vitamin Bundle	East	Carol White	2	50.39	100.78	51.56	49.22	WearTech
+1004	2024-02-19	Clothing	Running Shoes	East	Carol White	25	78.68	1967.0	849.1	1117.9	SportZone
+1105	2024-02-21	Home & Garden	Smart Thermostat	West	Alice Johnson	5	250.05	1250.25	655.99	594.26	FitLife
+1001	2024-02-22	Electronics	Laptop Pro	North	David Lee	24	1270.74	30497.76	17792.17	12705.59	TechCorp
+1053	2024-02-24	Home & Garden	Robot Vacuum	West	Bob Smith	5	457.01	2285.05	1129.47	1155.58	SoundWorld
+1024	2024-02-25	Electronics	Laptop Pro	South	Bob Smith	13	1329.66	17285.58	10683.1	6602.48	SmartHome Inc
+1067	2024-02-28	Food & Beverage	Premium Tea Set	South	Carol White	6	25.25	151.5	79.26	72.24	FashionHub

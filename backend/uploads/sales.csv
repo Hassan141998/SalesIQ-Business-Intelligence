@@ -1,0 +1,6 @@
+Order ID,Date,Category,Product,Region,Sales Rep,Units,Unit Price,Revenue,Cost,Profit,Customer
+1001,2024-01-05,Electronics,Laptop Pro,North,Alice,2,1299.99,2599.98,1800.00,799.98,TechCorp
+1002,2024-01-07,Clothing,Jacket,South,Bob,5,89.99,449.95,225.00,224.95,FashionHub
+1003,2024-02-10,Electronics,Headphones,East,Carol,8,149.99,1199.92,600.00,599.92,SoundWorld
+1004,2024-03-12,Home & Garden,Thermostat,West,David,3,249.99,749.97,375.00,374.97,SmartHome
+1005,2024-04-15,Food & Beverage,Coffee Set,North,Alice,20,34.99,699.80,350.00,349.80,CafeWorld
